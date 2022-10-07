@@ -82,8 +82,8 @@
             "name": "Run VSCode Extension",
             "type": "extensionHost",
             "request": "launch",
-            "args": ["--extensionDevelopmentPath=${workspaceFolder}/vscode"],
-            "outFiles": ["${workspaceFolder}/vscode/dist/**/*.js"]
+            "args": ["--extensionDevelopmentPath=${workspaceFolder}/vscode-extension"],
+            "outFiles": ["${workspaceFolder}/vscode-extension/dist/**/*.js"]
         }
     ],
     "inputs": [

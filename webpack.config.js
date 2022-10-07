@@ -148,7 +148,7 @@ const extensionConfig = {
     mode: 'none',
     entry: './src/vscode/extension/extension.ts',
     output: {
-        path: path.resolve(__dirname, 'vscode', 'dist'),
+        path: path.resolve(__dirname, 'vscode-extension', 'dist'),
         filename: 'extension.js',
         libraryTarget: 'commonjs2',
     },

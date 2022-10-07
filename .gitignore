@@ -21,6 +21,7 @@ analysis/
 *.scss.d.ts
 original-manifest-copy.json
 generated-validate-assessment-json.js
+vscode-extension
 
 # Dependency directories
 node_modules/

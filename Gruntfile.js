@@ -404,7 +404,7 @@ module.exports = function (grunt) {
                 'vscode-data': {
                     cwd: './src/vscode',
                     src: ['package.json'],
-                    dest: './vscode',
+                    dest: './vscode-extension',
                     expand: true,
                 },
             },
