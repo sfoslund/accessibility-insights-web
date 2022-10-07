@@ -135,5 +135,47 @@ const packageUIConfig = {
     target: 'node',
 };
 
+const extensionConfig = {
+    resolve: {
+        // It is important that src is absolute but node_modules is relative. See #2520
+        modules: [path.resolve(__dirname, './src'), 'node_modules'],
+        // We only directly use .tsx and .ts, but some of our transitive dependencies directly
+        // require .js or .json files
+        extensions: ['.tsx', '.ts', '.js', '.json'],
+    },
+    name: 'vscode',
+    target: 'node',
+    mode: 'none',
+    entry: './src/vscode/extension/extension.ts',
+    output: {
+        path: path.resolve(__dirname, 'vscode', 'dist'),
+        filename: 'extension.js',
+        libraryTarget: 'commonjs2',
+    },
+    externals: {
+        vscode: 'commonjs vscode',
+    },
+    resolve: {
+        extensions: ['.ts', '.js'],
+    },
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: 'ts-loader',
+                    },
+                ],
+            },
+        ],
+    },
+    devtool: 'nosources-source-map',
+    infrastructureLogging: {
+        level: 'log',
+    },
+};
+
 // For just one config, use "webpack --config-name unified", "webpack --config-name package-ui", etc
-module.exports = [unifiedConfig, packageUIConfig];
+module.exports = [unifiedConfig, packageUIConfig, extensionConfig];

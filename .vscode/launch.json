@@ -77,6 +77,13 @@
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
             "port": 9235
+        },
+        {
+            "name": "Run VSCode Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": ["--extensionDevelopmentPath=${workspaceFolder}/vscode"],
+            "outFiles": ["${workspaceFolder}/vscode/dist/**/*.js"]
         }
     ],
     "inputs": [

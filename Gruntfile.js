@@ -186,6 +186,7 @@ module.exports = function (grunt) {
             'esbuild-package-report': `node esbuild.js --env report`,
             'webpack-unified': `"${webpackPath}" --config-name unified`,
             'webpack-package-ui': `"${webpackPath}" --config-name package-ui`,
+            'webpack-vscode': `"${webpackPath}" --config-name vscode`,
             'esbuild-package-validator': `node esbuild.js --env validator`,
             'generate-validator': `node ${packageValidatorDropPath}`,
             'generate-scss-typings': `"${typedScssModulesPath}" src --exportType default`,
@@ -399,6 +400,12 @@ module.exports = function (grunt) {
                         },
                         ...productCategorySpecificCopyFiles,
                     ],
+                },
+                'vscode-data': {
+                    cwd: './src/vscode',
+                    src: ['package.json'],
+                    dest: './vscode',
+                    expand: true,
                 },
             },
         });
@@ -952,6 +959,7 @@ module.exports = function (grunt) {
         'build-assets',
         'package-ui',
     ]);
+    grunt.registerTask('build-vscode', ['exec:webpack-vscode', 'copy:vscode-data']);
     grunt.registerTask('build-package-validator', [
         'exec:esbuild-package-validator',
         'package-validator',
