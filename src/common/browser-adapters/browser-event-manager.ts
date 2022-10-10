@@ -29,5 +29,5 @@ export interface BrowserEventManager {
         callback: ApplicationListener,
     ): void;
 
-    removeListeners(eventType: string, event: Events.Event<any>);
+    removeListeners(eventType: string, event: Events.Event<any>): void;
 }

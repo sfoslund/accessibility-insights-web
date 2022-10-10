@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import { ContentScriptInjector } from 'background/injector/content-script-injector';
 import { createDefaultPromiseFactory } from '../../common/promises/promise-factory';
 import { createDefaultLogger } from '../../common/logging/default-logger';
-import { BrowserAdapter } from '../../common/browser-adapters/browser-adapter';
+import { ChromiumAdapter } from '../../common/browser-adapters/chromium-adapter';
+import { PassthroughBrowserEventManager } from 'common/browser-adapters/passthrough-browser-event-manager';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Activated');
@@ -24,13 +25,26 @@ export function activate(context: vscode.ExtensionContext) {
 
 		vscode.window.showInformationMessage('Injecting scripts into tab with ID: ' + tabId);
 		injectScripts(tabId);
+
+		// TODO possibly another command -> provide a url and open it in a webview?
+		// Based on cursory investigation webviews seem limited but possibly worth more investigation
+		const panel = vscode.window.createWebviewPanel(
+			'targetPage',
+			'TargetPage',
+			vscode.ViewColumn.One,
+			{}
+		  );
+	
+		const url = 'https://markreay.github.io/AU/before.html';
+		panel.webview.html = `<iframe src="${url}" width="100%" height="400px"></iframe>`;
 	});
 
 	context.subscriptions.push(disposable);
 }
 
 function injectScripts(tabId: number) {
-    const browserAdapter = {} as BrowserAdapter; // TODO need executeScriptInTab and insertCSSInTab implemented
+	const browserEventManager = new PassthroughBrowserEventManager();
+    const browserAdapter = new ChromiumAdapter(browserEventManager);
     const promiseFactory = createDefaultPromiseFactory();
     const logger = createDefaultLogger();
     const injector = new ContentScriptInjector(browserAdapter, promiseFactory, logger);

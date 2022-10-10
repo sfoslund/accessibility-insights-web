@@ -6,6 +6,7 @@
         "sourceMap": true,
         "rootDir": "..",
         "strict": true,
-        "baseUrl": ".." // allows us to import files from top level instead of relative paths
+        "baseUrl": "..", // allows us to import files from top level instead of relative paths
+        "esModuleInterop": true
     }
 }
