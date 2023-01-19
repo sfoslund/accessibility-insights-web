@@ -24,31 +24,38 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
 		vscode.window.showInformationMessage('Injecting scripts into tab with ID: ' + tabId);
-		injectScripts(tabId);
+		makeCdpConnection(tabId);
+		// injectScripts(tabId); // TODO uncommenting this causes activation error
 
 		// TODO possibly another command -> provide a url and open it in a webview?
 		// Based on cursory investigation webviews seem limited but possibly worth more investigation
-		const panel = vscode.window.createWebviewPanel(
-			'targetPage',
-			'TargetPage',
-			vscode.ViewColumn.One,
-			{}
-		  );
+		// const panel = vscode.window.createWebviewPanel(
+		// 	'targetPage',
+		// 	'TargetPage',
+		// 	vscode.ViewColumn.One,
+		// 	{}
+		//   );
 	
-		const url = 'https://markreay.github.io/AU/before.html';
-		panel.webview.html = `<iframe src="${url}" width="100%" height="400px"></iframe>`;
+		// const url = 'https://markreay.github.io/AU/before.html';
+		// panel.webview.html = `<iframe src="${url}" width="100%" height="400px"></iframe>`;
 	});
 
 	context.subscriptions.push(disposable);
 }
 
-function injectScripts(tabId: number) {
-	const browserEventManager = new PassthroughBrowserEventManager();
-    const browserAdapter = new ChromiumAdapter(browserEventManager);
-    const promiseFactory = createDefaultPromiseFactory();
-    const logger = createDefaultLogger();
-    const injector = new ContentScriptInjector(browserAdapter, promiseFactory, logger);
-    injector.injectScripts(tabId);
+// TODO just uncommenting this fails
+// function injectScripts(tabId: number) {
+// 	const browserEventManager = new PassthroughBrowserEventManager();
+//     const browserAdapter = new ChromiumAdapter(browserEventManager);
+//     const promiseFactory = createDefaultPromiseFactory();
+//     const logger = createDefaultLogger();
+//     const injector = new ContentScriptInjector(browserAdapter, promiseFactory, logger);
+//     injector.injectScripts(tabId);
+// }
+
+
+function makeCdpConnection(tabId: number) {
+
 }
 
 export function deactivate() {}
