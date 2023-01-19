@@ -10,6 +10,7 @@ import { PassthroughBrowserEventManager } from 'common/browser-adapters/passthro
 import puppeteer, { Browser, Page } from 'puppeteer-core';
 import path from 'path';
 import { isEmpty } from 'lodash';
+import { AccessibilityInsightsPanel } from 'vscode/extension/accessibilityInsightsPanel';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Activated');
@@ -25,6 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
 		var browser = await setUpBrowserInstance(url);
 		await injectScripts(browser);
 		console.log("Finished injecting scripts")
+
+
+		AccessibilityInsightsPanel.createOrShow(context, url);
+		
+		AccessibilityInsightsPanel.instance?.runAutomatedChecks();
+
 		// await makeCdpConnection(tabId);
 		// injectScripts(tabId); // TODO uncommenting this causes activation error
 
@@ -163,7 +170,8 @@ async function injectAxeIfUndefined(page: Page): Promise<void> {
 		console.log("Axe was undefined, injecting axe")
         await injectScriptFile(
             page,
-            'C:/code/accessibility-insights-web/node_modules/axe-core/axe.min.js',
+			'C:\\code\\accessibility-insights-web\\drop\\extension\\dev-mv3\\product\\bundle\\injected.bundle.js'
+            // 'C:/code/accessibility-insights-web/node_modules/axe-core/axe.min.js', // TODO inject content scripts instead?
         );
 
 		// Fails because of content security policy, but confirmed manually that this works
