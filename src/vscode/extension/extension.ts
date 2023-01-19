@@ -7,26 +7,24 @@ import { createDefaultLogger } from '../../common/logging/default-logger';
 import { ChromiumAdapter } from '../../common/browser-adapters/chromium-adapter';
 import { PassthroughBrowserEventManager } from 'common/browser-adapters/passthrough-browser-event-manager';
 // const CDP = require('chrome-remote-interface');
-import puppeteer from 'puppeteer-core';
+import puppeteer, { Browser, Page } from 'puppeteer-core';
+import path from 'path';
+import { isEmpty } from 'lodash';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Activated');
 
-	let disposable = vscode.commands.registerCommand('accessibility-insights.automated-checks', async (tabId: number) => {
-		if (!tabId) {
-            const userInput = await vscode.window.showInputBox({
-                prompt: 'Tab ID for tab to test',
-            });
-			if (userInput && !isNaN(Number(userInput))) {
-				tabId = Number(userInput);
-			} else {
-				vscode.window.showErrorMessage('Tab ID not provided or invalid');
-				return;
-			}
-        }
+	let disposable = vscode.commands.registerCommand('accessibility-insights.automated-checks', async () => {
+		const userInput = await vscode.window.showInputBox({
+			prompt: 'Test url',
+			placeHolder: 'https://github.com'
+		});
+		const url = (userInput === undefined || userInput === null || isEmpty(userInput)) ? 'https://github.com' : userInput;
 
-		vscode.window.showInformationMessage('Injecting scripts into tab with ID: ' + tabId);
-		await setUpBrowserInstance(tabId);
+		vscode.window.showInformationMessage('Starting up test page with url ' + url);
+		var browser = await setUpBrowserInstance(url);
+		await injectScripts(browser);
+		console.log("Finished injecting scripts")
 		// await makeCdpConnection(tabId);
 		// injectScripts(tabId); // TODO uncommenting this causes activation error
 
@@ -86,11 +84,11 @@ export function activate(context: vscode.ExtensionContext) {
 //     }
 // }
 
-async function setUpBrowserInstance(tabId: number) {
-	const url = 'https://github.com';
+async function setUpBrowserInstance(url: string): Browser {
     const { hostname, port, defaultUrl, userDataDir } = getRemoteEndpointSettings();
 	const browserPath = await getBrowserPath();
 	const browserInstance = await launchBrowser(browserPath, port, url, userDataDir);
+	return browserInstance
 }
 
 export async function launchBrowser(browserPath: string, port: number, targetUrl: string, userDataDir?: string): Promise<puppeteer.Browser> {
@@ -141,6 +139,43 @@ export function getRemoteEndpointSettings(): IDevToolsSettings {
 
 export async function getBrowserPath(): Promise<string> {
     return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+}
+
+async function injectScripts(browserInstance: Browser): Promise<void> {
+    try {
+        const pages = await browserInstance.pages();
+        const page = pages[0];
+        await injectAxeIfUndefined(page);
+        await page.addStyleTag({path: 'C:/code/accessibility-insights-web/dist/src/injected/styles/injected.css'});
+        // await createAccessibilityInsightsRootContainer(page);
+        // await createShadowContainer(page, path.join(__dirname, './injected/injected.css'));
+    }catch(error){
+        console.log(error)
+    }
+}
+
+async function injectAxeIfUndefined(page: Page): Promise<void> {
+    const axeIsUndefined = await page.evaluate(() => {
+        return (window as any).axe === undefined;
+    }, null);
+
+    if (axeIsUndefined) {
+		console.log("Axe was undefined, injecting axe")
+        await injectScriptFile(
+            page,
+            'C:/code/accessibility-insights-web/node_modules/axe-core/axe.min.js',
+        );
+
+		// Fails because of content security policy, but confirmed manually that this works
+        // await page.waitForFunction(() => {
+        //     return (window as any).axe !== undefined;
+        // });
+		console.log("Finished injecting")
+    }
+}
+
+async function injectScriptFile(page: Page, filePath: string): Promise<void> {
+    await page.addScriptTag({ path: filePath, type: 'module' });
 }
 
 export function deactivate() {}
