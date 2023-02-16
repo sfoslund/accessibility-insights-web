@@ -15,7 +15,10 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Starting up test page with url ' + url);
 		var browser = await setUpBrowserInstance(url);
 		await injectScripts(browser);
-		console.log("Finished injecting scripts")
+        let page = (await browser.pages())[0];
+        var axeRunResults = await runAutomatedChecks(page);
+        console.log(JSON.stringify(axeRunResults))
+        vscode.window.showInformationMessage("Finished running axe " + axeRunResults.value.testEngine.version + " against " + axeRunResults.value.url)
 	});
 
 	context.subscriptions.push(disposable);
@@ -33,7 +36,6 @@ export async function launchBrowser(browserPath: string, port: number, targetUrl
         '--no-first-run',
         '--no-default-browser-check',
         `--remote-debugging-port=${port}`,
-        targetUrl,
     ];
 
     const headless: boolean = false;
@@ -51,6 +53,9 @@ export async function launchBrowser(browserPath: string, port: number, targetUrl
     }
 
     const browserInstance = await puppeteer.launch({executablePath: browserPath, args, headless});
+    let page = (await browserInstance.pages())[0];
+    await page.setBypassCSP(true);
+    await page.goto(targetUrl);
     return browserInstance;
 }
 
@@ -83,7 +88,7 @@ async function injectScripts(browserInstance: Browser): Promise<void> {
         const pages = await browserInstance.pages();
         const page = pages[0];
         await injectAxeIfUndefined(page);
-        await page.addStyleTag({path: 'C:/code/accessibility-insights-web/dist/src/injected/styles/injected.css'});
+        // await page.addStyleTag({path: 'C:/code/accessibility-insights-web/dist/src/injected/styles/injected.css'});
     }catch(error){
         console.log(error)
     }
@@ -101,16 +106,31 @@ async function injectAxeIfUndefined(page: Page): Promise<void> {
             'C:/code/accessibility-insights-web/node_modules/axe-core/axe.min.js',
         );
 
-		// Fails because of content security policy, but confirmed manually that this works
-        // await page.waitForFunction(() => {
-        //     return (window as any).axe !== undefined;
-        // });
-		console.log("Finished injecting")
+        await page.waitForFunction(() => {
+            return (window as any).axe !== undefined;
+        });
+		console.log("Finished injecting axe")
     }
 }
 
 async function injectScriptFile(page: Page, filePath: string): Promise<void> {
     await page.addScriptTag({ path: filePath, type: 'module' });
+}
+
+async function runAutomatedChecks(page: Page): Promise<any> {
+    const cdpConnection = await page.target().createCDPSession();
+    const { exceptionDetails: evaluateExceptionDetails, result: evaluateRemoteObject } = await cdpConnection.send("Runtime.evaluate", { expression: 'window.axe.run(document, {runOnly: { type: "tag", values: ["wcag2a", "wcag21a", "wcag2aa", "wcag21aa"]}})' })
+    handleException(evaluateExceptionDetails)
+    const { exceptionDetails: awaitExceptionDetails, result: axeRunResults } = await cdpConnection.send("Runtime.awaitPromise", { promiseObjectId: evaluateRemoteObject.objectId!, returnByValue: true, generatePreview: true})
+    handleException(awaitExceptionDetails)
+    return axeRunResults;
+}
+
+function handleException(error: any): void {
+    if (error) {
+        console.log(error);
+        vscode.window.showErrorMessage("Error running automated checks: " + error)
+    }
 }
 
 export function deactivate() {}

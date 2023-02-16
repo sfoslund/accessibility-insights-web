@@ -9,9 +9,6 @@
     "categories": [
         "Other"
     ],
-    "activationEvents": [
-        "onCommand:accessibility-insights.automated-checks"
-    ],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
