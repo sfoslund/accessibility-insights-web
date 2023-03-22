@@ -114,6 +114,12 @@ export const fastPassAutomatedChecksSelectors = {
     },
 };
 
+export const assessmentAutomatedChecksSelectors = {
+    ruleDetail: getAutomationIdSelector(ruleDetailAutomationId),
+    cardsRuleId: getAutomationIdSelector(cardsRuleIdAutomationId),
+    failureCount: getAutomationIdSelector(failureCountAutomationId),
+};
+
 export const tabStopsSelectors = {
     navDataAutomationId: getAutomationIdSelector('TabStops'),
     addFailureInstanceButton: getAutomationIdSelector(addTabStopsFailureInstanceAutomationId),
