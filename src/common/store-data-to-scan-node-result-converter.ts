@@ -26,15 +26,19 @@ export type ScanNodeResult = UnifiedResult & {
 
 export type ConvertResultsToCardSelectionStoreDataCallback = (
     state: CardSelectionStoreData,
-    results: ScanNodeResult[],
+    results: ScanNodeResult[] | null,
 ) => CardSelectionStoreData;
 
 export const convertResultsToCardSelectionStoreData: ConvertResultsToCardSelectionStoreDataCallback =
-    (state: CardSelectionStoreData, results: ScanNodeResult[]): CardSelectionStoreData => {
+    (state: CardSelectionStoreData, results: ScanNodeResult[] | null): CardSelectionStoreData => {
         if (results) {
             results.forEach(result => {
                 if (result.status !== 'fail' && result.status !== 'unknown') {
                     return;
+                }
+
+                if (state.rules === null) {
+                    state.rules = {};
                 }
 
                 if (state.rules![result.ruleId] === undefined) {
